@@ -33,5 +33,3 @@
 Are you prepared to confront the enigmatic supervillain star and save the galaxy? Don your detective hat, click your way through the night sky, and immerse yourself in the whimsical universe of **Supervillain**!
 
 **Play the game here** (Replace with your game's URL once it's hosted).
-
-Feel free to copy and paste this README into your GitHub repository, and customize it further to match your game's style and personality.

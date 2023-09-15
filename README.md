@@ -32,6 +32,6 @@
 
 Are you prepared to confront the enigmatic supervillain star and save the galaxy? Don your detective hat, click your way through the night sky, and immerse yourself in the whimsical universe of **Supervillain**!
 
-**Play the game here** (Replace with your game's URL once it's hosted).
+**Play the game here** https://farhadkamal.github.io/supervillain/supervillain/.
 
 ![Supervillain - Unmask the Sneaky Star! Screenshot](screenshot.png)

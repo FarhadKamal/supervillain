@@ -1,0 +1,72 @@
+/* Reset some default styles */
+body, div, h1, h2, h3, h4, h5, h6, p, table, td {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+td:hover {
+    cursor: pointer;
+}
+
+#game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+table {
+    border-collapse: collapse;
+ 
+}
+
+td {
+    width: 70px;
+    height: 70px;
+    border: 1px solid #000;
+}
+
+
+#result {
+    font-size: 24px;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #ffffff;
+    color: #333;
+    border: 2px solid #333;
+    border-radius: 5px;
+}
+
+
+
+/* Add CSS animations to make stars dance */
+@keyframes starDance {
+    0% { transform: scale(0.8); }
+    25% { transform: scale(1.2); }
+    50% { transform: scale(0.8); }
+    75% { transform: scale(1.2); }
+    100% { transform: scale(0.8); }
+}
+
+
+/* Add CSS rules to enable zooming in and out on stars */
+td.zoom {
+    animation: starDance 2s ease infinite;
+    transition: transform 0.3s ease;
+}
+
+td.zoom:hover {
+    transform: scale(1.2);
+}
+
+.rotate {
+    animation: rotateStar 2s linear infinite;
+}
+
+/* Define the rotation animation for the Supervillain star */
+@keyframes rotateStar {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

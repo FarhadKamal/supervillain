@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supervillain</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Add meta tags for developer and game -->
+    <meta name="author" content="Sk. Farhad Kamal">
+    <meta name="description" content="Senior Software Engineer">
+    <meta name="keywords" content="game, Supervillain">
+
+    <!-- Include CSS-->
+    <link rel="stylesheet" type="text/css" href="assets/css/board.css">
+
+    <!-- Include jQuery-->
+    <script src="assets/js/jquery-3.7.1.js"></script>
+</head>
+<body>
+    <button id="reloadButton">Restart Game</button>
+
+    <div id="result">Find out the Supervillain!</div>
+    <div id="game-container">
+        <table>
+            <tbody>
+                <script>
+                    var cellCounter = 1;
+                    for (var row = 1; row <= 4; row++) {
+                        document.write("<tr>");
+                        for (var col = 1; col <= 4; col++) {
+                            document.write("<td id='cell" + cellCounter + "'>");
+                            document.write("<canvas width='70' height='70'></canvas>");
+                            document.write("</td>");
+                            cellCounter++;
+                        }
+                        document.write("</tr>");
+                    }
+                </script>
+            </tbody>
+        </table>
+        <div id="time-counter">Time: <span id="counter">0</span> seconds</div>
+    </div>
+
+    <script>
+        // jQuery code
+        $(document).ready(function() {
+            // JavaScript code to handle the reload button click event
+            $("#reloadButton").click(function() {
+                location.reload(); // Reload the page
+            });
+
+            // Initialize the timer variables
+            var timer;
+            var seconds = 0;
+            var gameStopped = false; // Variable to track if the game is stopped
+            var villainHighlighted = false; // Variable to track if the villain star is highlighted
+            var revealedStars = 0; // Variable to track the number of stars that reveal the villain
+            var clickedRevealingStars = []; // Array to keep track of clicked revealing stars
+            var funnyTextOptions = [
+                                "Oops, fooled you! I'm not the villain! Maybe try this one?",
+                                "Haha, gotcha! Try another star instead. How about this one?",
+                                "You thought I was the villain? Nice try! Check out this star instead.",
+                                "Not me, detective! Keep searching and look at this star instead.",
+                                "I'm innocent, believe me! How about clicking on this star?",
+                                "I'm just a harmless star! How about this one?",
+                                "You're barking up the wrong constellation! Look at this star instead.",
+                                "I'm flattered, but I'm not the villain! Check out this star instead.",
+                                "Try again, hero! Maybe this star is the real villain?",
+                                "Nope, not this star! How about looking at this one instead?",                                       
+                                "Wrong choice, buddy! This star is as innocent as it gets! Try this one.",
+                                "I may look suspicious, but I promise I'm not the villain. Look at this one instead.",
+                                "You've got a good eye, but this star isn't the villain. Maybe this one?",
+                                "Almost there! This star isn't the villain, but the real one is close! Try this one.",
+                                "Not a villain in sight! Keep your detective hat on and click another star. Maybe this one?",
+                                "This star is as innocent as a kitten. Try another for the real villain! How about this one?",
+                                "Nope, I'm just a star trying to shine. Check out a different one. How about this one?",
+                                "You're on the right track, but this star isn't the villain. Keep clicking! Maybe this one?",
+                            ];
+
+            // Function to update the time counter
+            function updateTimer() {
+                seconds++;
+                $("#counter").text(seconds);
+            }
+
+            // Start the timer when the page loads
+            timer = setInterval(updateTimer, 1000); // Update every second
+
+            // Function to draw a random star on the canvas
+            function drawRandomStar(canvas) {
+                var ctx = canvas.getContext("2d");
+
+                // Generate random color
+                var randomColor = "#" + Math.floor(Math.random()*16777215).toString(16);
+
+                // Draw star
+                ctx.fillStyle = randomColor;
+                ctx.beginPath();
+                ctx.moveTo(35, 5);
+                ctx.lineTo(45, 30);
+                ctx.lineTo(70, 30);
+                ctx.lineTo(50, 45);
+                ctx.lineTo(60, 70);
+                ctx.lineTo(35, 55);
+                ctx.lineTo(10, 70);
+                ctx.lineTo(20, 45);
+                ctx.lineTo(0, 30);
+                ctx.lineTo(25, 30);
+                ctx.closePath();
+                ctx.fill();
+
+                return randomColor;
+            }
+
+            // Store each star's color in a jQuery array
+            var starColors = [];
+
+            // Get all canvas elements and draw random stars
+            var canvasElements = document.querySelectorAll("canvas");
+            canvasElements.forEach(function(canvas) {
+                var color = drawRandomStar(canvas);
+                starColors.push(color);
+            });
+
+            // Generate a random index for the villain star
+            var villainIndex = Math.floor(Math.random() * 16);
+
+            // Store the villain's color
+            var villainColor = starColors[villainIndex];
+
+            // Generate three random indices for the additional stars
+            var additionalStarsIndices = [];
+            while (additionalStarsIndices.length < 3) {
+                var randomIndex = Math.floor(Math.random() * 16);
+                if (randomIndex !== villainIndex && !additionalStarsIndices.includes(randomIndex)) {
+                    additionalStarsIndices.push(randomIndex);
+                }
+            }
+
+           // Function to change the villain's color randomly with a similar size value
+            function changeVillainColor() {
+                // Get the villain star canvas and context
+                var villainCanvas = cells[villainIndex].querySelector("canvas");
+                var villainCtx = villainCanvas.getContext("2d");
+
+                // Get the path and coordinates used to draw the villain star
+                var path = [
+                    { x: 35, y: 5 },
+                    { x: 45, y: 30 },
+                    { x: 70, y: 30 },
+                    { x: 50, y: 45 },
+                    { x: 60, y: 70 },
+                    { x: 35, y: 55 },
+                    { x: 10, y: 70 },
+                    { x: 20, y: 45 },
+                    { x: 0, y: 30 },
+                    { x: 25, y: 30 }
+                ];
+
+                // Generate random RGB values for the villain's color
+                var red = Math.floor(Math.random() * 256);
+                var green = Math.floor(Math.random() * 256);
+                var blue = Math.floor(Math.random() * 256);
+
+                // Generate a random alpha (transparency) value between 0.5 and 1
+                var alpha = 0.5 + Math.random() * 0.5;
+
+                // Set the villain's color to the canvas
+                var newVillainColor = "rgba(" + red + ", " + green + ", " + blue + ", " + alpha + ")";
+                villainCtx.fillStyle = newVillainColor;
+
+                // Begin drawing the path
+                villainCtx.beginPath();
+
+                // Move to the initial point
+                villainCtx.moveTo(path[0].x, path[0].y);
+
+                // Draw lines to the remaining points
+                for (var i = 1; i < path.length; i++) {
+                    villainCtx.lineTo(path[i].x, path[i].y);
+                }
+
+                // Close the path
+                villainCtx.closePath();
+
+                // Fill the path with the new color
+                villainCtx.fill();
+
+                // Update the local variable villainColor
+                villainColor = newVillainColor;
+            }
+
+
+            // Add click event handler to each cell
+            var cells = document.querySelectorAll("td");
+            cells.forEach(function (cell, index) {
+                cell.addEventListener("click", function () {
+                    if (!gameStopped) {
+                        var color = starColors[index];
+                        document.getElementById("result").innerHTML = '';
+
+                        // Check if the clicked star is one of the additional stars
+                        if (additionalStarsIndices.includes(index) ) {
+                            // Draw the selected star with its color in the result div
+                            var selectedStarCanvas = document.createElement("canvas");
+                            selectedStarCanvas.width = 70;
+                            selectedStarCanvas.height = 70;
+                            document.getElementById("result").appendChild(selectedStarCanvas);
+                            var selectedCtx = selectedStarCanvas.getContext("2d");
+                            selectedCtx.fillStyle = color;
+                            selectedCtx.beginPath();
+                            selectedCtx.moveTo(35, 5);
+                            selectedCtx.lineTo(45, 30);
+                            selectedCtx.lineTo(70, 30);
+                            selectedCtx.lineTo(50, 45);
+                            selectedCtx.lineTo(60, 70);
+                            selectedCtx.lineTo(35, 55);
+                            selectedCtx.lineTo(10, 70);
+                            selectedCtx.lineTo(20, 45);
+                            selectedCtx.lineTo(0, 30);
+                            selectedCtx.lineTo(25, 30);
+                            selectedCtx.closePath();
+                            selectedCtx.fill();
+                            if(!clickedRevealingStars.includes(index)){
+                                // Add the index to clickedRevealingStars array
+                                clickedRevealingStars.push(index);
+                                revealedStars++;
+                            }
+
+                            
+                          
+
+
+                            // Get a random funny text option from the array
+                            var randomFunnyText = funnyTextOptions[Math.floor(Math.random() * funnyTextOptions.length)];
+
+                            // Append the random funny text and random star canvas to the result div
+                            $("#result").append("<br>" + randomFunnyText);
+
+                            // Draw the villain star with the villain's color in the result div
+                            var villainStarCanvas = document.createElement("canvas");
+                            villainStarCanvas.width = 35;
+                            villainStarCanvas.height = 35;
+                            document.getElementById("result").appendChild(villainStarCanvas);
+                            var villainCtx = villainStarCanvas.getContext("2d");
+                            villainCtx.fillStyle = villainColor;
+                            villainCtx.beginPath();
+                            villainCtx.moveTo(17.5, 2.5); // Adjusted coordinates for a smaller star
+                            villainCtx.lineTo(22.5, 15); // Adjusted coordinates for a smaller star
+                            villainCtx.lineTo(35, 15); // Adjusted coordinates for a smaller star
+                            villainCtx.lineTo(25, 22.5); // Adjusted coordinates for a smaller star
+                            villainCtx.lineTo(30, 35); // Adjusted coordinates for a smaller star
+                            villainCtx.lineTo(17.5, 27.5); // Adjusted coordinates for a smaller star
+                            villainCtx.lineTo(5, 35); // Adjusted coordinates for a smaller star
+                            villainCtx.lineTo(10, 22.5); // Adjusted coordinates for a smaller star
+                            villainCtx.lineTo(0, 15); // Adjusted coordinates for a smaller star
+                            villainCtx.lineTo(12.5, 15); // Adjusted coordinates for a smaller star
+                            villainCtx.closePath();
+                            villainCtx.fill();
+                            changeVillainColor();
+                        } else if (index === villainIndex && revealedStars === 3) {
+                            // Stop the game when the villain star is clicked and all revealing stars are clicked
+                            gameStopped = true;
+
+                            // Stop the timer
+                            clearInterval(timer);
+
+                            // Draw the villain star with the selected color in the result div
+                            var resultCanvas = document.createElement("canvas");
+                            resultCanvas.width = 70;
+                            resultCanvas.height = 70;
+                            document.getElementById("result").appendChild(resultCanvas);
+                            var ctx = resultCanvas.getContext("2d");
+                            ctx.fillStyle = color;
+                            ctx.beginPath();
+                            ctx.moveTo(35, 5);
+                            ctx.lineTo(45, 30);
+                            ctx.lineTo(70, 30);
+                            ctx.lineTo(50, 45);
+                            ctx.lineTo(60, 70);
+                            ctx.lineTo(35, 55);
+                            ctx.lineTo(10, 70);
+                            ctx.lineTo(20, 45);
+                            ctx.lineTo(0, 30);
+                            ctx.lineTo(25, 30);
+                            ctx.closePath();
+                            ctx.fill();
+
+                            // Display the "Yes, I am the villain! You found me in XYZ seconds" message with the selected color
+                            var villainMessage = "Yes, I'm the sneaky villain! You caught me in just " + seconds + " seconds. Congratulations, detective!";
+                            $("#result").append("<br>" + villainMessage);
+
+                            var cells = document.querySelectorAll("td");
+
+                            // Add the "rotate" class to the Supervillain star for rotation
+                            cells[villainIndex].classList.add("rotate");
+
+                            // Add the "zoom" class to all cells except the Supervillain star
+                            cells.forEach(function(cell, index) {
+                                if (index !== villainIndex) {
+                                    cell.classList.add("zoom");
+                                }
+                            });
+                        } else if (index === villainIndex) {
+                            // Draw the villain star with the selected color in the result div
+                            var resultCanvas = document.createElement("canvas");
+                            resultCanvas.width = 70;
+                            resultCanvas.height = 70;
+                            document.getElementById("result").appendChild(resultCanvas);
+                            var ctx = resultCanvas.getContext("2d");
+                            ctx.fillStyle = color;
+                            ctx.beginPath();
+                            ctx.moveTo(35, 5);
+                            ctx.lineTo(45, 30);
+                            ctx.lineTo(70, 30);
+                            ctx.lineTo(50, 45);
+                            ctx.lineTo(60, 70);
+                            ctx.lineTo(35, 55);
+                            ctx.lineTo(10, 70);
+                            ctx.lineTo(20, 45);
+                            ctx.lineTo(0, 30);
+                            ctx.lineTo(25, 30);
+                            ctx.closePath();
+                            ctx.fill();                          
+                           
+                            // Create a canvas for a random star
+                            var randomStarCanvas = document.createElement("canvas");
+                            randomStarCanvas.width = 35;
+                            randomStarCanvas.height = 35;
+                            
+                            // Get the context of the canvas
+                            var randomStarCtx = randomStarCanvas.getContext("2d");
+                            
+                            // Generate random color for the star
+                            var randomStarColor = "#" + Math.floor(Math.random()*16777215).toString(16);
+                            
+                            // Draw a random star on the canvas
+                            randomStarCtx.fillStyle = randomStarColor;
+                            randomStarCtx.beginPath();
+                            randomStarCtx.moveTo(17.5, 2.5); // Adjusted coordinates for a smaller star
+                            randomStarCtx.lineTo(22.5, 15); // Adjusted coordinates for a smaller star
+                            randomStarCtx.lineTo(35, 15); // Adjusted coordinates for a smaller star
+                            randomStarCtx.lineTo(25, 22.5); // Adjusted coordinates for a smaller star
+                            randomStarCtx.lineTo(30, 35); // Adjusted coordinates for a smaller star
+                            randomStarCtx.lineTo(17.5, 27.5); // Adjusted coordinates for a smaller star
+                            randomStarCtx.lineTo(5, 35); // Adjusted coordinates for a smaller star
+                            randomStarCtx.lineTo(10, 22.5); // Adjusted coordinates for a smaller star
+                            randomStarCtx.lineTo(0, 15); // Adjusted coordinates for a smaller star
+                            randomStarCtx.lineTo(12.5, 15); // Adjusted coordinates for a smaller star
+                            randomStarCtx.closePath();
+                            randomStarCtx.fill();
+                                       
+
+                            // Get a random funny text option from the array
+                            var randomFunnyText = funnyTextOptions[Math.floor(Math.random() * funnyTextOptions.length)];
+
+                            // Append the random funny text and random star canvas to the result div
+                            $("#result").append("<br>" + randomFunnyText);
+                            $("#result").append(randomStarCanvas);
+                       
+
+                        } else {
+                            // Draw the selected star with its color in the result div
+                            var resultCanvas = document.createElement("canvas");
+                            resultCanvas.width = 70;
+                            resultCanvas.height = 70;
+                            document.getElementById("result").appendChild(resultCanvas);
+                            var ctx = resultCanvas.getContext("2d");
+                            ctx.fillStyle = color;
+                            ctx.beginPath();
+                            ctx.moveTo(35, 5);
+                            ctx.lineTo(45, 30);
+                            ctx.lineTo(70, 30);
+                            ctx.lineTo(50, 45);
+                            ctx.lineTo(60, 70);
+                            ctx.lineTo(35, 55);
+                            ctx.lineTo(10, 70);
+                            ctx.lineTo(20, 45);
+                            ctx.lineTo(0, 30);
+                            ctx.lineTo(25, 30);
+                            ctx.closePath();
+                            ctx.fill();
+                    
+
+                             // Define an array of random text options
+                             var randomTextOptions = [
+                                "Oops, not me!",
+                                "Uh-oh, I am not the villain!",
+                                "Wrong choice, buddy!",
+                                "Nope, try again!",
+                                "You're getting warmer, but not quite!",
+                                "I'm flattered, but I'm not the villain!",
+                                "Nice try, detective!",
+                                "Not even close!",
+                                "You're barking up the wrong tree!",
+                                "Keep searching, hero!",
+                                "That's not it!",
+                                "Close, but not quite!",
+                                "I'm just a regular star!",
+                                "You missed! Try another one.",
+                                "No villain here! Try again!",
+                                "I'm not the one you're looking for!",
+                                "Getting closer! Keep going!",
+                                "You're in the right galaxy, but not the right star!",
+                                "Is that your final answer? It's not me!",
+                                "Still searching? Keep it up!",
+                                "No villain detected! Try another star."
+                            ];
+
+                            // Get a random text option from the array
+                            var randomText = randomTextOptions[Math.floor(Math.random() * randomTextOptions.length)];
+
+                            // Append the random text and random star canvas to the result div
+                            $("#result").append("<br>" + randomText);
+                     
+                        }
+                    }
+                });
+            });
+            // Highlight the villain star when Shift + Ctrl is pressed
+            $(document).keydown(function(e) {
+                if (e.shiftKey && e.ctrlKey && !villainHighlighted && !gameStopped) {
+                    var villainCanvas = cells[villainIndex].querySelector("canvas");
+                    villainCanvas.style.border = "2px solid red";
+                    villainHighlighted = true;
+                }
+            });
+
+            // Remove the highlight when any key is released
+            $(document).keyup(function(e) {
+                if (!e.shiftKey && !e.ctrlKey && villainHighlighted) {
+                    var villainCanvas = cells[villainIndex].querySelector("canvas");
+                    villainCanvas.style.border = "none";
+                    villainHighlighted = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
